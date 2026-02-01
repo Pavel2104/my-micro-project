@@ -32,6 +32,13 @@ jobs:
           KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
           KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
           KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+          options: >-
+            --health-cmd "nc -z localhost 9092"
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 10
 
     steps:
       - name: Checkout code
@@ -41,6 +48,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
+
+      - name: Wait for Kafka
+        run: |
+          echo "Waiting for Kafka to be ready..."
+          sleep 15 # Даем дополнительное время на инициализацию контроллера
 
       - name: Install All Dependencies
         run: |
