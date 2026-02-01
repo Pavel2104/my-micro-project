@@ -77,7 +77,7 @@ jobs:
         env:
           # Переопределяем адреса на localhost для среды GitHub Actions
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-          DATABASE_URL: postgresql://user:password@localhost:5432/orders_db
+          DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/orders_db
           PYTHONPATH: ${{ github.workspace }}/api_gateway
         run: |
           # Запускаем тесты с ограничением по времени, чтобы не висели вечно
