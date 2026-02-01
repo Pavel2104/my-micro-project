@@ -1,0 +1,14 @@
+name: Project CI  # Имя нашего процесса
+
+on: [push]       # Робот будет запускаться каждый раз, когда ты делаешь git push
+
+jobs:
+  check-python:  # Название первой задачи
+    runs-on: ubuntu-latest  # Робот возьмет чистую систему Ubuntu
+
+    steps:
+      - name: Checkout code  # Шаг 1: Робот копирует твой код к себе
+        uses: actions/checkout@v4
+
+      - name: Check Python version  # Шаг 2: Робот проверяет версию Python
+        run: python --version

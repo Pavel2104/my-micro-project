@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy>=2
+asyncpg
+pydantic
+psycopg2-binary
+pydantic-settings
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
+alembic
+aiokafka
+pytest
+pytest-asyncio
+httpx

@@ -1,0 +1,19 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Копируем требования
+COPY api_gateway/requirements.txt api_gateway_requirements.txt
+RUN pip install --no-cache-dir -r api_gateway_requirements.txt
+RUN pip install --no-cache-dir alembic asyncpg
+
+# Копируем Alembic
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
+
+# Копируем код проекта
+COPY api_gateway /app/api_gateway
+COPY worker_service /app/worker_service
+
+# Команда по умолчанию для запуска миграций
+CMD ["alembic", "upgrade", "head"]
