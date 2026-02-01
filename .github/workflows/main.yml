@@ -41,16 +41,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery passlib pydantic-settings
-          # Установка зависимостей из requirements, если они есть
-          find . -name "requirements.txt" -exec pip install -r {} +
+          if [ -f api_gateway/requirements.txt ]; then
+          pip install -r api_gateway/requirements.txt
+          fi
 
       - name: Wait for Kafka
-        # Ждем, пока порт 9092 станет доступен (максимум 60 секунд)
         run: |
-          echo "Waiting for Kafka to start..."
+          echo "Waiting for Kafka (apache/kafka) to start..."
           timeout 60s bash -c 'until printf "" 2>>/dev/null >>/dev/tcp/localhost/9092; do sleep 2; done'
-          echo "Kafka is ready!"
-          sleep 5
+          echo "Port 9092 is open!"
+          sleep 10
 
       - name: Run Tests
         env:
