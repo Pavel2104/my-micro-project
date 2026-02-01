@@ -44,8 +44,8 @@ jobs:
 
       - name: Install All Dependencies
         run: |
-          pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery
-          # Ставим зависимости для всех сервисов
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery passlib
           find . -name "requirements.txt" -exec pip install -r {} +
 
       - name: Run API Gateway Tests
