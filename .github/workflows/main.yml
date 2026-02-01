@@ -1,14 +1,23 @@
-name: Project CI  # Имя нашего процесса
+name: Project CI
 
-on: [push]       # Робот будет запускаться каждый раз, когда ты делаешь git push
+on: [push]
 
 jobs:
-  check-python:  # Название первой задачи
-    runs-on: ubuntu-latest  # Робот возьмет чистую систему Ubuntu
+  test-logic:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code  # Шаг 1: Робот копирует твой код к себе
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check Python version  # Шаг 2: Робот проверяет версию Python
-        run: python --version
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Укажи путь к своему файлу зависимостей
+          if [ -f api_gateway/requirements.txt ]; then pip install -r api_gateway/requirements.txt; fi
+          pip install pytest pytest-asyncio httpx  # Ставим инструменты для тестов
