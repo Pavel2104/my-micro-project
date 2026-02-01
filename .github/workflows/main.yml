@@ -45,8 +45,13 @@ jobs:
       - name: Install All Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery passlib
-          find . -name "requirements.txt" -exec pip install -r {} +
+          # Устанавливаем базовые инструменты для тестов
+          pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery passlib pydantic-settings
+          
+          # Устанавливаем зависимости каждого сервиса по отдельности (это надежнее)
+          if [ -f api_gateway/requirements.txt ]; then pip install -r api_gateway/requirements.txt; fi
+          if [ -f order_service/requirements.txt ]; then pip install -r order_service/requirements.txt; fi
+          if [ -f worker_service/requirements.txt ]; then pip install -r worker_service/requirements.txt; fi
 
       - name: Run API Gateway Tests
         env:
