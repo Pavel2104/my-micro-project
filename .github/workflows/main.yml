@@ -62,6 +62,6 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/orders_db
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
-          # Добавляем корневую папку в PYTHONPATH, чтобы Python видел твои модули
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          # Добавляем именно папку api_gateway в пути поиска модулей
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/api_gateway
           pytest api_gateway/tests/test_orders.py -v
