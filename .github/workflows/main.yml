@@ -65,8 +65,15 @@ jobs:
       - name: Run Tests
         env:
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-          # Указываем путь к базе на localhost с асинхронным драйвером
+
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orders_db
+
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/orders_db
+
           PYTHONPATH: ${{ github.workspace }}/api_gateway
         run: |
           pytest api_gateway/tests/ -v --maxfail=1
