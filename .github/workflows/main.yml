@@ -58,9 +58,14 @@ jobs:
 
       - name: Create Kafka Topic
         run: |
-          # Создаем топик orders_new, который ищет твой код
           docker exec $(docker ps -q --filter ancestor=apache/kafka:3.7.1) \
           /opt/kafka/bin/kafka-topics.sh --create --topic orders_new --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 || true
+
+      - name: Map hostnames to localhost
+          # Это заставит систему думать, что и 'postgres', и 'db_orders' — это localhost
+        run: |
+          sudo echo "127.0.0.1 postgres" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 db_orders" | sudo tee -a /etc/hosts
 
       - name: Run Tests
         env:
@@ -73,7 +78,6 @@ jobs:
           POSTGRES_DB: orders_db
 
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/orders_db
-
           PYTHONPATH: ${{ github.workspace }}/api_gateway
         run: |
           pytest api_gateway/tests/ -v --maxfail=1
