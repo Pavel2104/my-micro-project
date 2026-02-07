@@ -1,17 +1,19 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, DeclarativeBase  # Добавили DeclarativeBase
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from typing import AsyncGenerator
 import os
+from dotenv import load_dotenv  # для локальной работы через .env
+
+# --- Загружаем .env (локально) ---
+load_dotenv()
 
 # --- Современный способ объявления Base ---
 class Base(DeclarativeBase):
     pass
 
 # --- DATABASE_URL ---
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@orders_db:5432/orders_db"
-)
+# Обязательная переменная окружения
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # --- Асинхронный движок ---
 engine = create_async_engine(DATABASE_URL, echo=True)
@@ -27,3 +29,4 @@ AsyncSessionLocal = sessionmaker(
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
+

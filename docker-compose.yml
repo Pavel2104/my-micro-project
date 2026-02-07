@@ -6,7 +6,7 @@ services:
     ports:
         - "8000:8000"
     env_file:
-        - .env
+        - .env.local
       # --- ДОБАВЬ ЭТИ СТРОКИ ---
     volumes:
         - .:/app
@@ -27,7 +27,7 @@ services:
       context: ./worker_service
     working_dir: /app
     env_file:
-      - .env
+      - .env.local
     depends_on:
       orders_db:
         condition: service_healthy
@@ -66,10 +66,8 @@ services:
     image: postgres:15
     ports:
       - "5433:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - .env.local
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -117,7 +115,7 @@ services:
       context: .
       dockerfile: Dockerfile.alembic
     env_file:
-      - .env
+      - .env.local
     working_dir: /app
     volumes:
       - .:/app
