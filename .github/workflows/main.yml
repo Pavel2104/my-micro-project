@@ -1,28 +1,28 @@
 name: CI Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     services:
-      # Поднимаем базу данных
-      db_orders:
+      postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: orders_db
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
-      # Поднимаем Kafka
       kafka:
         image: apache/kafka:3.7.1
         ports:
@@ -38,46 +38,54 @@ jobs:
           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          pip install pytest pytest-asyncio httpx sqlalchemy aiokafka asyncpg fastapi uvicorn celery passlib pydantic-settings
+          pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx
+          pip install sqlalchemy asyncpg aiokafka fastapi uvicorn celery passlib pydantic-settings
           if [ -f api_gateway/requirements.txt ]; then pip install -r api_gateway/requirements.txt; fi
+
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Waiting for PostgreSQL..."
+          timeout 60s bash -c 'until pg_isready -h localhost -p 5432 -U postgres; do sleep 2; done'
 
       - name: Wait for Kafka
         run: |
           echo "Waiting for Kafka..."
-          timeout 60s bash -c 'until printf "" 2>>/dev/null >>/dev/tcp/localhost/9092; do sleep 2; done'
-          sleep 15
+          timeout 60s bash -c 'until printf "" 2>/dev/null >>/dev/tcp/localhost/9092; do sleep 2; done'
+          sleep 10
 
-      - name: Create Kafka Topic
+      - name: Create Kafka topic
         run: |
           docker exec $(docker ps -q --filter ancestor=apache/kafka:3.7.1) \
-          /opt/kafka/bin/kafka-topics.sh --create --topic orders_new --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 || true
+          /opt/kafka/bin/kafka-topics.sh \
+          --create \
+          --topic orders_new \
+          --bootstrap-server localhost:9092 \
+          --partitions 1 \
+          --replication-factor 1 || true
 
-      - name: Map hostnames to localhost
-          # Это заставит систему думать, что и 'postgres', и 'db_orders' — это localhost
-        run: |
-          sudo echo "127.0.0.1 postgres" | sudo tee -a /etc/hosts
-          sudo echo "127.0.0.1 db_orders" | sudo tee -a /etc/hosts
 
-      - name: Run Tests
+      - name: Run migrations
         env:
-          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/orders_db
+        run: |
+          alembic upgrade head
 
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: orders_db
+      - name: Run tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/api_gateway
 
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/orders_db
-          PYTHONPATH: ${{ github.workspace }}/api_gateway
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
           pytest api_gateway/tests/ -v --maxfail=1
