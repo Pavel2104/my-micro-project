@@ -8,6 +8,9 @@ from api_gateway.main import app
 from order_service.models import Order
 import os
 
+# CI-флаг
+CI = os.getenv("CI") == "true"
+
 # Используем DATABASE_URL для Docker / CI
 DATABASE_URL = os.environ["DATABASE_URL"]
 
@@ -15,34 +18,46 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-
 @pytest.mark.asyncio
-async def test_e2e_order_creation_flow(monkeypatch):
+async def test_e2e_order_creation_flow():
     """
-    CI-friendly версия:
-    - мокаем Kafka (не используем настоящий продьюсер)
-    - проверяем, что API создаёт заказ в базе
+    CI- и локально-дружелюбный тест:
+    - Не использует Kafka
+    - Проверяет, что API создаёт заказ в базе
     """
 
-    # 1. Мокаем Kafka, чтобы продьюсер не был нужен
-    monkeypatch.setattr("api_gateway.kafka_producer.producer", None)
+    # --- Отключаем Kafka ---
+    try:
+        from api_gateway import kafka_producer
+
+        # Не стартуем продьюсер
+        kafka_producer.producer = None
+
+        # Заменяем функцию отправки события на "пустышку"
+        async def fake_send_order_event(order_data):
+            print("⚡ Kafka event skipped in test:", order_data)
+
+        kafka_producer.send_order_event = fake_send_order_event
+    except ImportError:
+        # Если файла kafka_producer.py нет, просто игнорируем
+        pass
 
     transport = ASGITransport(app=app)
 
-    # 2. Данные для заказа
+    # --- Данные для заказа ---
     order_payload = {
         "user_id": 999,
         "status": "pending",
         "items": [{"product_id": 10, "quantity": 1}]
     }
 
-    # 3. Делаем запрос к FastAPI
+    # --- Делаем запрос к FastAPI ---
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.post("/orders/", json=order_payload)
 
     assert response.status_code == 201
 
-    # 4. Проверяем базу напрямую (не через Kafka)
+    # --- Проверяем базу напрямую ---
     async with AsyncSessionLocal() as session:
         stmt = select(Order).where(Order.user_id == 999)
         result = await session.execute(stmt)
@@ -50,5 +65,5 @@ async def test_e2e_order_creation_flow(monkeypatch):
 
         assert db_order is not None
         assert db_order.user_id == 999
-        print(f"\nИнтеграция прошла успешно! Заказ ID {db_order.id} найден в БД.")
+        print(f"\n✅ Интеграция прошла успешно! Заказ ID {db_order.id} найден в БД.")
 

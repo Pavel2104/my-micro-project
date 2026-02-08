@@ -1,23 +1,33 @@
 import asyncio
-import database
-from models import Order
-from sqlalchemy import select, func
+import os
+from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
 
-async def check():
-    # Пробуем найти сессию под разными именами
-    session_maker = getattr(database, 'async_session_maker', 
-                    getattr(database, 'async_sessionmaker', None))
-    
-    if not session_maker:
-        print(f'\n[ERROR] Could not find session maker in database.py. Available: {dir(database)}')
-        return
+# Загружаем .env только если он есть
+load_dotenv()
 
-    try:
-        async with session_maker() as s:
-            res = await s.execute(select(func.count()).select_from(Order))
-            print(f'\n[SUCCESS] Total orders in DB: {res.scalar()}')
-    except Exception as e:
-        print(f'\n[ERROR] Something went wrong: {e}')
+# Определяем DATABASE_URL
+# Если переменная окружения уже установлена (например в Docker), берем её
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if __name__ == '__main__':
-    asyncio.run(check())
+if not DATABASE_URL:
+    # fallback на локальный .env
+    DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5433/orders_db"
+
+# Создаем асинхронный движок SQLAlchemy
+engine = create_async_engine(DATABASE_URL, echo=True)
+
+async def test():
+    async with engine.begin() as conn:
+        # Выполняем тестовый запрос
+        result = await conn.execute(text("SELECT 1"))
+        row = result.fetchone()  # Для asyncpg через SQLAlchemy fetchone() работает синхронно
+        print(f"Result: {row[0]}")  # Ожидаем 1
+
+# Запуск асинхронной функции
+if __name__ == "__main__":
+    asyncio.run(test())
+
+
+
