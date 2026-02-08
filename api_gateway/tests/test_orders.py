@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import patch, AsyncMock
-from main import app
+from api_gateway.main import app
 
 @pytest.mark.asyncio
 async def test_api_is_alive():
