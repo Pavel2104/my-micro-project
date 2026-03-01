@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: procplatf
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_TOPIC_NAME: "orders_new"
+  DB_HOST: "db-server"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: order-service-secrets
+  namespace: procplatf
+type: Opaque
+stringData: # Используем stringData, чтобы не возиться с base64 вручную
+  DB_USER: "admin"
+  DB_PASSWORD: "admin_password"

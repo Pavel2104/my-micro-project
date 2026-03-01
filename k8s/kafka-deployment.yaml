@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: procplatf
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: apache/kafka:3.7.1
+          command: [ "/bin/bash", "-c" ]
+          args:
+            - |
+              # Фиксируем ID кластера
+              CLUSTER_ID="67UIn9i_SXm_ST6pM1Lz9g" 
+              
+              # Форматируем хранилище
+              /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/docker/server.properties --ignore-formatted
+              
+              # Запускаем сервер с исправленными адресами
+              /opt/kafka/bin/kafka-server-start.sh /etc/kafka/docker/server.properties \
+                --override process.roles=broker,controller \
+                --override node.id=1 \
+                --override controller.quorum.voters=1@127.0.0.1:9093 \
+                --override listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093 \
+                --override advertised.listeners=PLAINTEXT://kafka:9092 \
+                --override controller.listener.names=CONTROLLER \
+                --override listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+          ports:
+            - containerPort: 9092
+          # Оставляем env для наглядности, но основные параметры теперь в args
+          env:
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: procplatf
+spec:
+  selector:
+    app: kafka
+  ports:
+    - protocol: TCP
+      port: 9092
+      targetPort: 9092
+  type: ClusterIP
