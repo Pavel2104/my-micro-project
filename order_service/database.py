@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from config import settings  # Теперь импорт правильный!
+from config import settings
 
-# Используем URL напрямую, так как он уже с asyncpg
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=True,

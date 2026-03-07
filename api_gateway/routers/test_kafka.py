@@ -5,6 +5,5 @@ router = APIRouter()
 
 @router.post("/send-test-order/")
 async def send_test_order():
-    # Тестовое сообщение
     await send_order_event(order_id=999, status="created")
     return {"message": "Test order sent"}

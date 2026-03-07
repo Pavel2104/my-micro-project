@@ -19,25 +19,19 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 8000
-        # Подгружаем POSTGRES_USER и POSTGRES_PASSWORD из секрета
         envFrom:
         - secretRef:
             name: postgres-secret
         env:
-        # 1. Исправляем PYTHONPATH для корректных импортов
         - name: PYTHONPATH
           value: "/app:/app/api_gateway"
 
-        # 2. Формируем DATABASE_URL динамически, используя переменные из envFrom
-        # Внимательно: здесь мы используем db-server (наш новый сервис)
         - name: DATABASE_URL
           value: "postgresql+asyncpg://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@db-server:5432/postgres"
 
-        # 3. Жестко фиксируем порт как число, чтобы перебить системную строку tcp://...
         - name: POSTGRES_PORT
           value: "5432"
 
-        # 4. Адрес для Kafka
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "kafka:9092"
 ---

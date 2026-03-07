@@ -4,8 +4,8 @@ from aiokafka import AIOKafkaProducer, errors
 from config import settings
 
 producer: AIOKafkaProducer | None = None
-MAX_RETRIES = 5       # максимальное количество попыток
-RETRY_DELAY = 3       # задержка между попытками в секундах
+MAX_RETRIES = 5
+RETRY_DELAY = 3
 
 async def init_kafka():
     global producer
@@ -30,7 +30,6 @@ async def send_order_event(order_id: int, status: str):
     from aiokafka import AIOKafkaProducer
     import json
 
-    # Создаем продюсера прямо внутри функции
     producer = AIOKafkaProducer(
         bootstrap_servers='kafka:9092',
         value_serializer=lambda v: json.dumps(v).encode('utf-8')
@@ -38,12 +37,10 @@ async def send_order_event(order_id: int, status: str):
 
     await producer.start()
     try:
-        # Создаем тело сообщения
         data = {"order_id": order_id, "status": status}
         await producer.send_and_wait("orders_new", {"order_id": order_id, "status": status})
         print("Successfully sent to orders_new")
     finally:
-        # Важно закрыть соединение
         await producer.stop()
 
 async def close_kafka():

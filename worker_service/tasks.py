@@ -6,9 +6,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 
-# -----------------------------
-# TEST TASK
-# -----------------------------
 @celery_app.task
 def add(x, y):
     return x + y
@@ -16,9 +13,7 @@ def add(x, y):
 @celery_app.task
 def ping():
     return "pong"
-# -----------------------------
-# TASK 1 — генерация PDF
-# -----------------------------
+
 @celery_app.task
 def generate_pdf_task(text: str) -> str:
     filename = f"/tmp/generated_{os.getpid()}.pdf"
@@ -31,9 +26,6 @@ def generate_pdf_task(text: str) -> str:
 
     return filename
 
-# -----------------------------
-# TASK 2 — отправка email
-# -----------------------------
 @celery_app.task
 def send_email_task(to_email: str, subject: str, body: str) -> str:
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")

@@ -5,27 +5,21 @@ from api_gateway.routers import users, auth, orders, products, payments, test_ka
 from api_gateway.models import Base
 
 
-# Современный способ управления жизненным циклом приложения
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код до yield выполняется при СТАРТЕ
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    yield  # Здесь приложение работает и принимает запросы
-
-    # Код после yield выполняется при ОСТАНОВКЕ (если нужно что-то закрыть)
-    # Например: await engine.dispose()
+    yield
 
 
 app = FastAPI(
     title="Real-Time Order Processing Platform",
     version="1.0",
     description="API Gateway для работы с заказами, продуктами, пользователями и платежами",
-    lifespan=lifespan  # Подключаем lifespan здесь
+    lifespan=lifespan
 )
 
-# Подключаем роутеры
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(orders.router)

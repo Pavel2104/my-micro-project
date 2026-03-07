@@ -8,7 +8,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase  # Добавили это
 from datetime import datetime, timezone
 
-# Создаем свою базу для этого микросервиса
 class Base(DeclarativeBase):
     pass
 

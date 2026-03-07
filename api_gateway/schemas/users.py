@@ -11,7 +11,6 @@ class UserRead(BaseModel):
     username: str
     email: EmailStr
 
-    # Меняем старый class Config на новую переменную
     model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):

@@ -10,13 +10,10 @@ from typing import Optional
 from jose import JWTError, jwt
 from api_gateway.config import settings
 
-# Настройка хеширования
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 для токенов
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-# JWT
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

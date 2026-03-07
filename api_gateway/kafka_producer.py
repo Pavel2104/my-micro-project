@@ -25,17 +25,13 @@ async def init_kafka():
             else:
                 raise RuntimeError("Failed to connect to Kafka after multiple attempts") from e
 
-# Теперь принимаем один аргумент — словарь с данными заказа
 async def send_order_event(order_data: dict):
     global producer
     if producer is None:
-        # Если вдруг продюсер не инициализирован (хотя lifespan должен был это сделать)
         print("❌ Kafka producer is None! Trying to initialize...")
         await init_kafka()
 
     try:
-        # Отправляем весь словарь в топик из настроек
-        # Мы используем settings.KAFKA_ORDER_TOPIC, чтобы не хардкодить "orders_new"
         await producer.send_and_wait(settings.KAFKA_ORDER_TOPIC, order_data)
         print(f"📡 Successfully sent order to {settings.KAFKA_ORDER_TOPIC}: {order_data}")
     except Exception as e:

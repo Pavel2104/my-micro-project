@@ -23,18 +23,15 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            # Системные настройки
             - name: PYTHONPATH
               value: "/app:/app/order_service"
 
-            # Настройки Kafka (из ConfigMap)
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 configMapKeyRef:
                   name: order-service-config
                   key: KAFKA_BOOTSTRAP_SERVERS
 
-            # Данные для сборки DATABASE_URL
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -67,19 +64,16 @@ spec:
                   name: order-service-config
                   key: DB_PORT
 
-            # Собираем итоговую строку подключения
             - name: DATABASE_URL
               value: "postgresql+asyncpg://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
 
-          # Проверка, что сервис жив
           livenessProbe:
             httpGet:
-              path: /docs # Или другой эндпоинт, который всегда доступен
+              path: /docs
               port: 8000
             initialDelaySeconds: 15
             periodSeconds: 20
 
-          # Проверка, что сервис готов принимать заказы
           readinessProbe:
             tcpSocket:
               port: 8000
@@ -97,6 +91,6 @@ spec:
     app: order-service
   ports:
     - protocol: TCP
-      port: 8001       # Порт, по которому к сервису обращается Gateway
-      targetPort: 8000 # Порт внутри пода
+      port: 8001
+      targetPort: 8000
   type: ClusterIP

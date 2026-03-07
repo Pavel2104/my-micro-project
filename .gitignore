@@ -1,2 +1,7 @@
 .env.local
 minikube-linux-amd64
+.idea/
+__pycache__/
+k8s/order-service-env.yaml
+k8s/postgres-secret.yaml
+.env

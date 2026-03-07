@@ -15,7 +15,6 @@ class OrderItemRead(BaseModel):
     product_id: int
     quantity: int
 
-    # Обновленный синтаксис V2
     model_config = ConfigDict(from_attributes=True)
 
 class OrderRead(BaseModel):
@@ -24,5 +23,4 @@ class OrderRead(BaseModel):
     status: str
     items: List[OrderItemRead] = []
 
-    # Обновленный синтаксис V2
     model_config = ConfigDict(from_attributes=True)

@@ -6,7 +6,6 @@ from config import settings
 from database import AsyncSessionLocal
 from models import Order
 
-# Настроим логирование, чтобы видеть что происходит в Docker logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -30,29 +29,23 @@ async def consume_orders():
             logger.info(f"📥 Received event from Kafka: {event}")
 
             try:
-                # Открываем сессию с базой
                 async with AsyncSessionLocal() as session:
-                    # Создаем объект заказа на основе данных из Kafka
-                    # Поля: user_id, status (мы привели их к согласию со шлюзом)
                     new_order = Order(
                         user_id=event.get("user_id"),
                         status=event.get("status", "pending").upper(),
-                        total_amount=0.0  # Пока заглушка, можно расширить позже
+                        total_amount=0.0
                     )
 
                     session.add(new_order)
 
-                    # Фиксируем изменения в PostgreSQL
                     await session.commit()
 
-                    # Обновляем объект, чтобы получить сгенерированный базой ID
                     await session.refresh(new_order)
 
                     logger.info(f"✅ SUCCESS: Order saved to DB with ID: {new_order.id}")
 
             except Exception as e:
                 logger.error(f"❌ DATABASE ERROR: Could not save order: {e}")
-                # Здесь можно добавить логику retry (повтора), если база временно недоступна
 
     except Exception as e:
         logger.error(f"❌ KAFKA ERROR: Consumer loop crashed: {e}")

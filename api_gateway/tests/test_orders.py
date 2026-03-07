@@ -29,7 +29,6 @@ async def test_create_order_success():
         assert response.status_code == 201
         assert mock_kafka.called
 
-        # Проверяем данные, ушедшие в мок Kafka
         args, kwargs = mock_kafka.call_args
         sent_data = args[0] if args and isinstance(args[0], dict) else kwargs
 
@@ -40,7 +39,6 @@ async def test_create_order_success():
 @pytest.mark.asyncio
 async def test_create_order_validation_error():
     transport = ASGITransport(app=app)
-    # Ошибка: items не список
     invalid_payload = {"user_id": 1, "items": "not-a-list"}
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.post("/orders/", json=invalid_payload)
@@ -48,13 +46,8 @@ async def test_create_order_validation_error():
 
 @pytest.mark.asyncio
 async def test_create_order_kafka_failure():
-    """
-    НОВЫЙ ТЕСТ: Проверяем, что API возвращает 500 ошибку,
-    если брокер сообщений (Kafka) внезапно 'упал'.
-    """
     transport = ASGITransport(app=app)
 
-    # Имитируем жесткий сбой Kafka через side_effect
     with patch("api_gateway.kafka_producer.send_order_event", side_effect=Exception("Kafka connection error")):
         order_payload = {
             "user_id": 1,
@@ -65,11 +58,8 @@ async def test_create_order_kafka_failure():
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
             response = await ac.post("/orders/", json=order_payload)
 
-        # Ожидаем, что сервер не упадет с ошибкой Python,
-        # а вернет корректный HTTP 500
         assert response.status_code == 500
-        # Если твой роутер пробрасывает описание ошибки, можно проверить и текст:
-        # assert "Kafka connection error" in response.text
+
 
 
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from api_gateway.database import get_db
 from api_gateway.models import User
@@ -9,10 +9,8 @@ from sqlalchemy.future import select
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# Регистрация пользователя
 @router.post("/register", response_model=CurrentUser)
 async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
-    # Проверяем, есть ли уже пользователь с таким username или email
     result = await db.execute(select(User).filter((User.username == user.username) | (User.email == user.email)))
     existing_user = result.scalar_one_or_none()
     if existing_user:
@@ -29,7 +27,6 @@ async def register_user(user: UserRegister, db: AsyncSession = Depends(get_db)):
     return db_user
 
 
-# Логин и получение токена
 @router.post("/token", response_model=Token)
 async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).filter(User.username == user.username))
@@ -44,7 +41,6 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# Получение информации о текущем пользователе
 @router.get("/me", response_model=CurrentUser)
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user

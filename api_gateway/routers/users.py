@@ -11,7 +11,6 @@ from api_gateway.core.security import get_current_user, hash_password
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-# Получить список всех пользователей (только авторизованные)
 @router.get("/", response_model=List[UserRead])
 async def get_users(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User))
@@ -19,7 +18,6 @@ async def get_users(current_user: User = Depends(get_current_user), db: AsyncSes
     return users
 
 
-# Получить пользователя по ID
 @router.get("/{user_id}", response_model=UserRead)
 async def get_user(user_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).filter(User.id == user_id))
@@ -29,7 +27,6 @@ async def get_user(user_id: int, current_user: User = Depends(get_current_user),
     return user
 
 
-# Создать нового пользователя
 @router.post("/", response_model=UserRead)
 async def create_user(user: UserCreate, current_user: User = Depends(get_current_user),
                       db: AsyncSession = Depends(get_db)):
@@ -44,7 +41,6 @@ async def create_user(user: UserCreate, current_user: User = Depends(get_current
     return new_user
 
 
-# Обновить данные пользователя
 @router.put("/{user_id}", response_model=UserRead)
 async def update_user(user_id: int, user: UserUpdate, current_user: User = Depends(get_current_user),
                       db: AsyncSession = Depends(get_db)):
@@ -66,7 +62,6 @@ async def update_user(user_id: int, user: UserUpdate, current_user: User = Depen
     return db_user
 
 
-# Удалить пользователя
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(user_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).filter(User.id == user_id))

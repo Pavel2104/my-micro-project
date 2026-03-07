@@ -13,8 +13,6 @@ spec:
       labels:
         app: worker-service
     spec:
-      # ВАЖНО: Отключает системные переменные Kubernetes типа REDIS_PORT=tcp://...
-      # Это решает ошибку "Port could not be cast to integer value"
       enableServiceLinks: false
 
       containers:
@@ -22,20 +20,18 @@ spec:
         image: worker-service:latest
         imagePullPolicy: Never
 
-        # Переменные окружения
         env:
           - name: REDIS_PORT
-            value: "6379"  # Явно переопределяем порт числом
+            value: "6379"
         envFrom:
         - configMapRef:
             name: order-service-env
         - secretRef:
             name: postgres-secret
 
-        # Лимиты ресурсов (помогают избежать 137 ошибки)
         resources:
           limits:
-            memory: "512Mi" # Увеличил лимит, так как Python + Celery прожорливы
+            memory: "512Mi"
             cpu: "500m"
           requests:
             memory: "256Mi"

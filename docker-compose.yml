@@ -7,13 +7,11 @@ services:
         - "8000:8000"
     env_file:
         - .env.local
-      # --- ДОБАВЬ ЭТИ СТРОКИ ---
     volumes:
         - .:/app
     working_dir: /app
     environment:
         - PYTHONPATH=/app
-      # -------------------------
     depends_on:
         orders_db:
           condition: service_healthy
@@ -34,26 +32,25 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_started  # worker будет ждать Kafka
+        condition: service_started
     volumes:
       - ./worker_service:/app
 
   order_service:
     build:
       context: .
-      dockerfile: Dockerfile  # Если используешь общий из корня
+      dockerfile: Dockerfile
     container_name: order_service
     ports:
       - "8001:8000"
     volumes:
-      - .:/app               # Пробрасываем код внутрь
-    working_dir: /app        # Работаем из корня
+      - .:/app
+    working_dir: /app
     environment:
       - PYTHONPATH=/app:/app/order_service
       - SERVICE_NAME=order_service
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@orders_db:5432/orders_db
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    # Явно запускаем main.py из папки order_service
     command: uvicorn order_service.main:app --host 0.0.0.0 --port 8000
     depends_on:
       orders_db:
@@ -96,11 +93,9 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-        # НОВЫЕ СТРОКИ ТУТ:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-        # ---
       KAFKA_NUM_PARTITIONS: 1
       KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
     healthcheck:

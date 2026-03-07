@@ -15,7 +15,6 @@ branch_labels = None
 depends_on = None
 
 def upgrade() -> None:
-    # --- ВСТАВЛЯЕМ ЭТОТ БЛОК ---
     op.create_table(
         'orders',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -30,6 +29,5 @@ def upgrade() -> None:
     # ---------------------------
 
 def downgrade() -> None:
-    # На случай, если захотим откатить:
     op.drop_index(op.f('ix_orders_id'), table_name='orders')
     op.drop_table('orders')

@@ -21,13 +21,10 @@ spec:
           command: [ "/bin/bash", "-c" ]
           args:
             - |
-              # Фиксируем ID кластера
               CLUSTER_ID="67UIn9i_SXm_ST6pM1Lz9g" 
               
-              # Форматируем хранилище
               /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/docker/server.properties --ignore-formatted
               
-              # Запускаем сервер с исправленными адресами
               /opt/kafka/bin/kafka-server-start.sh /etc/kafka/docker/server.properties \
                 --override process.roles=broker,controller \
                 --override node.id=1 \
@@ -38,7 +35,6 @@ spec:
                 --override listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
           ports:
             - containerPort: 9092
-          # Оставляем env для наглядности, но основные параметры теперь в args
           env:
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"

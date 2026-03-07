@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict # Добавили SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     POSTGRES_USER: str = "postgres"
@@ -19,7 +19,6 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
-    # Современный синтаксис настроек для Pydantic V2
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore"

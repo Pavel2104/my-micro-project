@@ -9,5 +9,4 @@ class ProductRead(BaseModel):
     name: str
     price: float
 
-    # Переходим на новый стандарт
     model_config = ConfigDict(from_attributes=True)

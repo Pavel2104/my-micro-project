@@ -11,5 +11,4 @@ class PaymentRead(BaseModel):
     amount: float
     status: str
 
-    # Финальный штрих для схем
     model_config = ConfigDict(from_attributes=True)
